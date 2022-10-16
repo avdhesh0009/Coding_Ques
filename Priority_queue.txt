@@ -1,0 +1,71 @@
+#include <vector>
+
+class PriorityQueue {
+    vector<int> pq;
+
+   public:
+    bool isEmpty() { 
+        return pq.size() == 0; 
+    }
+
+    int getSize() { 
+        return pq.size(); 
+    }
+
+    int getMin() {
+        if (isEmpty()) {
+            return 0;
+        }
+
+        return pq[0];
+    }
+
+    void insert(int element) {
+        pq.push_back(element);
+
+        int childIndex = pq.size() - 1;
+
+        while (childIndex > 0) {
+            int parentIndex = (childIndex - 1) / 2;
+
+            if (pq[childIndex] < pq[parentIndex]) {
+                int temp = pq[childIndex];
+                pq[childIndex] = pq[parentIndex];
+                pq[parentIndex] = temp;
+            } else {
+                break;
+            }
+
+            childIndex = parentIndex;
+        }
+    }
+
+    int removeMin() {
+        // Write your code here
+     if(isEmpty()){
+        return 0;
+     }
+     int ans=pq[0];
+     pq[0]=pq[pq.size()-1];
+     pq.pop_back();
+     int parentindex=0,minindex=0;
+     int leftchild=2*parentindex+1;
+     int rightchild=2*parentindex+2;
+     while(leftchild<pq.size()){
+         if(pq[minindex]>pq[leftchild]){
+         minindex=leftchild;
+     }
+     if(rightchild<pq.size()&&pq[minindex]>pq[rightchild]){
+         minindex=rightchild;
+     }
+      if(parentindex==minindex){
+          break;
+      }
+      swap(pq[parentindex],pq[minindex]);
+      parentindex=minindex;
+      leftchild=2*parentindex+1;
+      rightchild=2*parentindex+2;
+     }
+    return ans;
+  }
+};
