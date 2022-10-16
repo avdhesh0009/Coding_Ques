@@ -1,0 +1,132 @@
+#include<string>
+using namespace std;
+template<typename T>
+class mapnode{
+    public:
+    string key;
+    T val;
+    mapnode<T>* next;
+    mapnode(string key,T val){
+        this->key=key;
+        this->val=val;
+        next=NULL;
+    }
+    ~mapnode(){
+        delete next;
+    }
+};
+template<typename T>
+class ourmap{
+     public:
+     mapnode<T>** buckets;
+     int count;
+     int bucketsize;
+     ourmap(){
+       count=0;
+       bucketsize=5;
+       buckets=new mapnode<T>*[bucketsize];
+       for(int i=0;i<bucketsize;i++){
+         buckets[i]=NULL;
+       }
+     }
+     ~ourmap(){
+        for(int i=0;i<bucketsize;i++){
+            delete buckets[i];
+        }
+        delete [] buckets;
+     }
+     int size(){
+        return count;
+     }
+     private:
+     int BucketIndex(string key){
+       int hashindex=0;
+       int currcofficient=1;
+       for(int i=key.length()-1;i>=0;i--){
+          hashindex+=key[i]*currcofficient;
+          hashindex%=bucketsize;
+          currcofficient*=37;
+          currcofficient=currcofficient%bucketsize;
+       }
+       return hashindex%bucketsize;
+     }
+     private:
+     void rehash(){
+        mapnode<T>** temp=buckets;
+        buckets=new mapnode<T>*[2*bucketsize];
+        for(int i=0;i<2*bucketsize;i++){
+            buckets[i]=NULL;
+        }
+        int oldbuckets=bucketsize;
+        bucketsize*=2;
+        count=0;
+        for(int i=0;i<oldbuckets;i++){
+            mapnode<T>* head=temp[i];
+            while(head!=NULL){
+                string key=head->key;
+                T val=head->val;
+                insert(key,val);
+                head=head->next;
+            }
+        }
+        for(int i=0;i<oldbuckets;i++){
+            delete temp[i];
+        }
+        delete []temp;
+     }
+     public:
+     void insert(string key,T val){
+        int bucketindex=BucketIndex(key);
+        mapnode<T>* head=buckets[bucketindex];
+        while(head!=NULL){
+            if(head->key==key){
+                head->val=val;
+                return;
+            }
+            head=head->next;
+        }
+        head=buckets[bucketindex];
+        mapnode<T>* n=new mapnode<T>(key,val);
+        n->next=head;
+        buckets[bucketindex]=n;
+        count++;
+        double loadfactor=(1.0*count)/bucketsize;
+        if(loadfactor>0.7){
+            rehash();
+        }
+     }
+     T getvalue(string key){
+        int bucketindex=BucketIndex(key);
+        mapnode<T>* head=buckets[bucketindex];
+        if(head!=NULL){
+            if(head->key==key){
+                return head->val;
+            }
+            head=head->next;
+        }
+        return 0;
+     }
+     T remove(string key){
+        int bucketindex=BucketIndex(key);
+        mapnode<T>* head=buckets[bucketindex];
+        mapnode<T>* prev=NULL;
+        while(head!=NULL){
+            if(head->key==key){
+              if(prev==NULL){
+                buckets[bucketindex]=head->next;
+              }
+              else{
+               prev->next=head->next;
+              }
+              int data=head->val;
+              head->next=NULL;
+              delete head;
+              count--;
+              return data;
+            }
+            prev=head;
+            head=head->next;
+        }
+        return 0;
+     }
+};
