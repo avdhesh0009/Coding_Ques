@@ -1,0 +1,85 @@
+#include<iostream>
+#include<unordered_map>
+#include<vector>
+#include<queue>
+using namespace std;
+class node{
+    public:
+    char data;
+    unsigned freq;
+    node *left,*right;
+    node(char data,unsigned freq){
+        this->data=data;
+        this->freq=freq;
+        left=right=NULL;
+    }
+};
+class compare{
+    public:
+   bool operator()(node* l,node* r){
+      return (l->freq>r->freq);
+   }
+};
+void printhuffmantree(node* root,string str,unordered_map<char,string>&cmp,unordered_map<string,char>&dcmp){
+ if(root==NULL) return;
+ if(root->left==NULL&&root->right==NULL){
+    cout<<root->data<<":"<<str<<endl;
+    cmp[root->data]=str;
+    dcmp[str]=root->data;
+ }   
+ printhuffmantree(root->left,str+"0",cmp,dcmp);
+ printhuffmantree(root->right,str+"1",cmp,dcmp);
+}
+string compression(unordered_map<char,string>cmp,char *arr,int size){
+    string comp="";
+    for (int i = 0; i < 7; i++)
+    {
+        string str=cmp[arr[i]];
+        comp+=str;
+    }
+    return comp;
+}
+string decompression(unordered_map<string,char>dcmp,string str){
+    string dcomp="",ans="";
+    for(int i=0;i<str.length();i++){
+        ans+=str[i];
+        if(dcmp.find(ans)!=dcmp.end()){
+          dcomp+=dcmp[ans];
+          ans.erase();
+        }
+    }
+    return dcomp;
+}
+node* huffmancoding(char *arr,int *freq,int size){
+    priority_queue<node*,vector<node*>,compare>pq;
+    for (int i = 0; i < size; i++)
+    {
+        node* n=new node(arr[i],freq[i]);
+        pq.push(n);
+    }
+    node* left,*right,*top;
+    while(pq.size()!=1){
+         left=pq.top();
+         pq.pop();
+         right=pq.top();
+         pq.pop();
+         top=new node('$',left->freq+right->freq);
+         top->left=left;
+         top->right=right;
+         pq.push(top);
+    }
+    return pq.top();
+}
+int main(){
+    char arr[]={'a','b','n','q','e','x','f'};
+    int freq[]={40,3,12,13,10,1,2};
+    node* s=huffmancoding(arr,freq,7);
+    unordered_map<char,string>cmp;
+    unordered_map<string,char>dcmp;
+    printhuffmantree(s,"",cmp,dcmp);
+    string str=compression(cmp,arr,7);
+    cout<<str<<endl;
+    string ans=decompression(dcmp,str);
+    cout<<ans<<endl;
+    return 0;
+}
